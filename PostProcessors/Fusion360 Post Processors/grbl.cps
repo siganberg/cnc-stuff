@@ -132,12 +132,12 @@ var singleLineCoolant = false; // specifies to output multiple coolant codes in 
 // {id: COOLANT_THROUGH_TOOL, on: [8, 88], off: [9, 89]}
 var coolants = [
   {id: COOLANT_FLOOD, on: 8},
-  {id: COOLANT_MIST},
-  {id: COOLANT_THROUGH_TOOL},
-  {id: COOLANT_AIR},
+  {id: COOLANT_MIST, on: 7},
+  {id: COOLANT_THROUGH_TOOL, on: ["G4 P0", "M64 P3", 8, 7], off: ["G4 P0", "M65 P3"]},
+  {id: COOLANT_AIR, on: ["G4 P0", "M64 P3"], off: ["G4 P0", "M65 P3"]},
   {id: COOLANT_AIR_THROUGH_TOOL},
   {id: COOLANT_SUCTION},
-  {id: COOLANT_FLOOD_MIST},
+  {id: COOLANT_FLOOD_MIST, on: [8, 7]},
   {id: COOLANT_FLOOD_THROUGH_TOOL},
   {id: COOLANT_OFF, off: 9}
 ];
@@ -844,10 +844,18 @@ function getCoolantCodes(coolant) {
   if ((coolant != COOLANT_OFF) && (currentCoolantMode != COOLANT_OFF) && (coolantOff != undefined)) {
     if (Array.isArray(coolantOff)) {
       for (var i in coolantOff) {
-        multipleCoolantBlocks.push(mFormat.format(coolantOff[i]));
+        if (typeof coolantOff[i] === "string") {
+          multipleCoolantBlocks.push(coolantOff[i]);
+        } else {
+          multipleCoolantBlocks.push(mFormat.format(coolantOff[i]));
+        }
       }
     } else {
-      multipleCoolantBlocks.push(mFormat.format(coolantOff));
+      if (typeof coolantOff === "string") {
+        multipleCoolantBlocks.push(coolantOff);
+      } else {
+        multipleCoolantBlocks.push(mFormat.format(coolantOff));
+      }
     }
   }
 
@@ -882,10 +890,18 @@ function getCoolantCodes(coolant) {
   } else {
     if (Array.isArray(m)) {
       for (var i in m) {
-        multipleCoolantBlocks.push(mFormat.format(m[i]));
+        if (typeof m[i] === "string") {
+          multipleCoolantBlocks.push(m[i]);
+        } else {
+          multipleCoolantBlocks.push(mFormat.format(m[i]));
+        }
       }
     } else {
-      multipleCoolantBlocks.push(mFormat.format(m));
+      if (typeof m === "string") {
+        multipleCoolantBlocks.push(m);
+      } else {
+        multipleCoolantBlocks.push(mFormat.format(m));
+      }
     }
     currentCoolantMode = coolant;
     return multipleCoolantBlocks; // return the single formatted coolant value
