@@ -5,7 +5,7 @@ import adsk.core, adsk.fusion, adsk.cam, traceback, shutil, json, os, os.path, t
 
 # Version number of settings as saved in documents and settings file
 # update this whenever settings content changes
-version = 8
+version = 9
 
 # Initial default values of settings
 defaultSettings = {
@@ -879,6 +879,14 @@ def PostProcessSetup(fname, setup, setupFolder, docSettings):
         pathlib.Path(setupFolder).mkdir(parents=True, exist_ok=True)
         fileHead = open(path + fileExt, "w")
         fileBody = open(opFolder + "/" + constBodyTmpFile + fileExt, "w")
+
+        # Filter out Personal Use warning comments
+        personalUseFilter = [
+            "When using Fusion for Personal Use",
+            "moves is reduced to match the feedrate",
+            "which can increase machining time",
+            "are available with a Fusion Subscription"
+        ]
         fFirst = True
         fBlankOk = False
         lineNum = 10
@@ -1029,6 +1037,10 @@ def PostProcessSetup(fname, setup, setupFolder, docSettings):
             while line[0] == "(" or line[0] == "O" or line[0] == "\n":
                 if line[0] == "\n":
                     fBlankOk = True
+                # Skip Personal Use warning lines
+                if any(phrase in line for phrase in personalUseFilter):
+                    line = fileOp.readline()
+                    continue
                 if regToolComment.match(line) != None:
                     fileHead.write(line)
                     line = fileOp.readline()
@@ -1074,10 +1086,12 @@ def PostProcessSetup(fname, setup, setupFolder, docSettings):
                         continue    # don't output tool line
                     break
                 if fFirst or line[0] == "(":
-                    if (fNum):
-                        fileBody.write("N" + str(lineNum) + " ")
-                        lineNum += constLineNumInc
-                    fileBody.write(line)
+                    # Skip Personal Use warning lines before tool code
+                    if not any(phrase in line for phrase in personalUseFilter):
+                        if (fNum):
+                            fileBody.write("N" + str(lineNum) + " ")
+                            lineNum += constLineNumInc
+                        fileBody.write(line)
                 line = fileOp.readline()
                 if len(line) == 0:
                     return "Tool change G-code (Txx) not found; this post processor is not compatible with Post Process All."
@@ -1213,6 +1227,15 @@ def PostProcessSetup(fname, setup, setupFolder, docSettings):
                 line = match["line"]        # filter off line number if present
                 fNum = match["N"] != None
                 toolCur = match["T"]
+                # Skip Personal Use warning lines in body
+                if any(phrase in line for phrase in personalUseFilter):
+                    lineFull = fileOp.readline()
+                    if len(lineFull) == 0:
+                        break
+                    match = regBody.match(lineFull).groupdict()
+                    line = match["line"]
+                    fNum = match["N"] != None
+                    continue
                 if (toolCur == None):
                     if (fNum):
                         fileBody.write("N" + str(lineNum) + " ")
@@ -1241,6 +1264,9 @@ def PostProcessSetup(fname, setup, setupFolder, docSettings):
         if len(tailGcode) != 0:
             tailGcode = tailGcode.splitlines(True)
             for code in tailGcode:
+                # Skip Personal Use warning lines in tail
+                if any(phrase in code for phrase in personalUseFilter):
+                    continue
                 match = regBody.match(code).groupdict()
                 if match["N"] != None:
                     fileBody.write("N" + str(lineNum) + " " + match["line"])
