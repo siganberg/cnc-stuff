@@ -1,0 +1,13 @@
+=== Post to ncSender started at 2026-01-12 01:15:31.752756 ===
+2026-01-12 01:15:31.807793: Output folder: /Volumes/francis/Nextcloud/CNC
+2026-01-12 01:15:31.846456: Checking setup: Z-Limit Trigger
+2026-01-12 01:15:31.846661:   Op 2D Chamfer2: error getting type: 'Operation' object has no attribute 'operationType'
+2026-01-12 01:15:31.846762:   Op Trace2: error getting type: 'Operation' object has no attribute 'operationType'
+2026-01-12 01:15:31.846800:   Op Bore2: error getting type: 'Operation' object has no attribute 'operationType'
+2026-01-12 01:15:31.846833:   Op 2D Contour1: error getting type: 'Operation' object has no attribute 'operationType'
+2026-01-12 01:15:31.846862:   Result: hasValidToolpath=True, isProbeOnly=False
+2026-01-12 01:15:31.846937: PostProcessSetup: Z-Limit Trigger, folder=/Volumes/francis/Nextcloud/CNC
+2026-01-12 01:15:31.846961:   Post processor: /Users/francis/Nextcloud/CNC/cnc-stuff/PostProcessors/Fusion360 Post Processors/grbl.cps
+2026-01-12 01:15:31.846983:   Units: 2
+2026-01-12 01:15:31.847029:   Calling cam.postProcess...
+2026-01-12 01:15:31.862907:   EXCEPTION: 3 : Cannot locate the simple error log generated from the Post Processing.

@@ -1,0 +1,13 @@
+{
+    "autodeskProduct": "Fusion",
+    "type": "addin",
+    "id": "PatersonTech_PostToNcSender",
+    "author": "Francis Marasigan (based on Tim Paterson's PostProcessAll)",
+    "description": {
+        "": "Post process all CAM setups and upload directly to ncSender"
+    },
+    "version": "1.0.0",
+    "runOnStartup": true,
+    "supportedOS": "windows|mac",
+    "editEnabled": true
+}
