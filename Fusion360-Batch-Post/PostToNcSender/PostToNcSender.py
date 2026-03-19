@@ -251,17 +251,9 @@ class CommandEventHandler(adsk.core.CommandCreatedEventHandler):
             input = inputGroup.children.addIntegerSpinnerCommandInput("port", "Port", 1, 65535, 1, docSettings["port"])
             input.tooltip = "ncSender Port"
 
-            input = inputGroup.children.addTextBoxCommandInput("folderLabel", "", "Save to folder (optional):", 1, True)
-            input.isFullWidth = True
-
-            input = inputGroup.children.addStringValueInput("outputFolder", "", docSettings.get("outputFolder", ""))
-            input.tooltip = "Optional: Save G-code files to this folder"
-            input.tooltipDescription = "If specified, G-code files will also be saved to this folder. Leave empty to only upload to ncSender."
-            input.isFullWidth = True
-
-            input = inputGroup.children.addBoolValueInput("browseFolder", "Browse", False)
-            input.resourceFolder = "resources/Browse"
-            input.tooltip = "Browse for Output Folder"
+            input = inputGroup.children.addStringValueInput("outputFolder", "Folder (optional)", docSettings.get("outputFolder", ""))
+            input.tooltip = "Optional: Create folder on ncSender and upload files there"
+            input.tooltipDescription = "If specified, creates this folder on ncSender server and uploads all G-code files there. Leave empty to upload to root folder."
 
             inputGroup.isExpanded = docSettings["groupConnection"]
 
@@ -296,74 +288,6 @@ class CommandEventHandler(adsk.core.CommandCreatedEventHandler):
             input.isEnabled = docSettings["sequence"]
             input.tooltip = "Use 2-Digit Sequence Numbers"
 
-            # select units
-            input = inputs.addDropDownCommandInput("units",
-                                                   "Post output units",
-                                                   adsk.core.DropDownStyles.TextListDropDownStyle)
-            input.listItems.add('Document units', True)
-            input.listItems.add('Inches', False)
-            input.listItems.add('Milimeters', False)
-            input.listItems.item(docSettings["units"]).isSelected = True
-            input.isFullWidth = True
-            input.tooltip = "Post Output Units"
-
-            # "Personal Use" version
-            inputGroup = inputs.addGroupCommandInput("groupPersonal", "Personal Use")
-            input = inputGroup.children.addBoolValueInput("splitSetup",
-                                                          "Use individual operations",
-                                                          True,
-                                                          "",
-                                                          docSettings["splitSetup"])
-            input.tooltip = "Split Setup Into Individual Operations"
-
-            input = inputGroup.children.addTextBoxCommandInput("toolLabel",
-                                                               "",
-                                                               "G-code for tool change:",
-                                                               1,
-                                                               True)
-            input.isFullWidth = True
-            label = input
-
-            input = inputGroup.children.addStringValueInput("toolChange", "", docSettings["toolChange"])
-            input.isEnabled = docSettings["splitSetup"]
-            input.isFullWidth = True
-            input.tooltip = "G-code to Precede Tool Change"
-            label.tooltip = input.tooltip
-
-            input = inputGroup.children.addTextBoxCommandInput("endLabel",
-                                                               "",
-                                                               "G-codes that mark ending sequence:",
-                                                               1,
-                                                               True)
-            input.isFullWidth = True
-            label = input
-
-            input = inputGroup.children.addStringValueInput("endCodes", "", docSettings["endCodes"])
-            input.isEnabled = docSettings["splitSetup"]
-            input.isFullWidth = True
-            input.tooltip = "G-codes That Mark the Ending Sequence"
-            label.tooltip = input.tooltip
-
-            input = inputGroup.children.addBoolValueInput("fastZ",
-                                                          "Restore rapid moves",
-                                                          True,
-                                                          "",
-                                                          docSettings["fastZ"])
-            input.isEnabled = docSettings["splitSetup"]
-            input.tooltip = "Restore Rapid Moves (Experimental)"
-
-            inputGroup.isExpanded = docSettings["groupPersonal"]
-
-            # Advanced -- retry settings
-            inputGroup = inputs.addGroupCommandInput("groupAdvanced", "Advanced")
-            input = inputGroup.children.addFloatSpinnerCommandInput("initialDelay",
-                "Initial time allowance", "s", 0.1, 1.0, 0.1, docSettings["initialDelay"])
-            input.tooltip = "Initial Time to Post Process an Operation"
-            input = inputGroup.children.addIntegerSpinnerCommandInput("postRetries",
-                "Number of retries", 1, 9, 1, docSettings["postRetries"])
-            input.tooltip = "Number of Retries"
-            inputGroup.isExpanded = docSettings["groupAdvanced"]
-
             # post processor
             inputGroup = inputs.addGroupCommandInput("groupPost", "Post Processor")
             input = inputGroup.children.addStringValueInput("post", "", docSettings["post"])
@@ -374,16 +298,6 @@ class CommandEventHandler(adsk.core.CommandCreatedEventHandler):
             input.resourceFolder = "resources/Browse"
             input.tooltip = "Browse for Post Processor"
             inputGroup.isExpanded = docSettings["groupPost"]
-
-            input = inputGroup.children.addBoolValueInput("numericName",
-                                                          "Name must be numeric",
-                                                          True,
-                                                          "",
-                                                          docSettings["numericName"])
-            input.tooltip = "Output File Name Must Be Numeric"
-
-            input = inputGroup.children.addStringValueInput("fileExt", "Output file extension", docSettings["fileExt"])
-            input.tooltip = "Output File Extension"
 
             # button to save default settings
             input = inputs.addBoolValueInput("save", "Save as default", False)
@@ -447,18 +361,7 @@ class CommandInputChangedHandler(adsk.core.InputChangedEventHandler):
                     self.docSettings["post"] = dialog.filename
                     inputs.itemById("post").value = dialog.filename
 
-            elif input.id == "browseFolder":
-                dialog = ui.createFolderDialog()
-                dialog.initialDirectory = self.docSettings["outputFolder"]
-                dialog.title = "Select output folder (optional)"
-                if dialog.showDialog() == adsk.core.DialogResults.DialogOK:
-                    self.docSettings["outputFolder"] = dialog.folder
-                    inputs.itemById("outputFolder").value = dialog.folder
-
-            elif input.id == "units":
-                self.docSettings[input.id] = input.selectedItem.index
-
-            elif input.id in self.docSettings:
+            elif input.id in self.docSettings or input.id == "outputFolder":
                 if input.objectType == adsk.core.GroupCommandInput.classType():
                     self.docSettings[input.id] = input.isExpanded
                 else:
@@ -466,13 +369,6 @@ class CommandInputChangedHandler(adsk.core.InputChangedEventHandler):
 
             if input.id == "sequence":
                 inputs.itemById("twoDigits").isEnabled = input.value
-
-            if input.id == "splitSetup":
-                inputs.itemById("toolChange").isEnabled = input.value
-                inputs.itemById("toolLabel").isEnabled = input.value
-                inputs.itemById("endCodes").isEnabled = input.value
-                inputs.itemById("endLabel").isEnabled = input.value
-                inputs.itemById("fastZ").isEnabled = input.value
 
         except:
             ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
@@ -511,6 +407,11 @@ class CommandExecuteHandler(adsk.core.CommandEventHandler):
 
     def notify(self, args):
         eventArgs = adsk.core.CommandEventArgs.cast(args)
+        # Read final input values directly from command inputs
+        inputs = eventArgs.command.commandInputs
+        self.docSettings["host"] = inputs.itemById("host").value
+        self.docSettings["port"] = inputs.itemById("port").value
+        self.docSettings["outputFolder"] = inputs.itemById("outputFolder").value
         PerformPostProcess(self.docSettings, self.selectedSetups)
 
 
@@ -533,32 +434,51 @@ def stop(context):
             ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
 
 
-def upload_to_ncsender(filepath, host="ncsender", port=8090):
-    """Upload a G-code file to ncSender. Returns file ID on success, raises Exception on error."""
+def create_folder_on_ncsender(folder, host="ncsender", port=8090):
+    """Create a folder on ncSender server."""
+    url = f"http://{host}:{port}/api/gcode-files/folders"
+    data = json.dumps({"path": folder}).encode('utf-8')
+    req = urllib.request.Request(url, data=data, method='POST')
+    req.add_header('Content-Type', 'application/json')
+    try:
+        response = urllib.request.urlopen(req, timeout=30)
+        return json.loads(response.read().decode('utf-8'))
+    except urllib.error.HTTPError as e:
+        error_body = e.read().decode('utf-8') if e.fp else str(e)
+        raise Exception(f"HTTP {e.code}: {error_body}")
+    except urllib.error.URLError as e:
+        raise Exception(f"Connection failed: {e.reason}")
+
+
+def upload_to_ncsender(filepath, host="ncsender", port=8090, folder=None):
+    """Save a G-code file to ncSender storage without loading it."""
     filename = os.path.basename(filepath)
-    with open(filepath, 'rb') as f:
+
+    with open(filepath, 'r', encoding='utf-8', errors='replace') as f:
         file_content = f.read()
 
-    boundary = '----WebKitFormBoundary7MA4YWxkTrZu0gW'
-    body = (
-        f'--{boundary}\r\n'
-        f'Content-Disposition: form-data; name="file"; filename="{filename}"\r\n'
-        f'Content-Type: application/octet-stream\r\n\r\n'
-    ).encode('utf-8') + file_content + f'\r\n--{boundary}--\r\n'.encode('utf-8')
+    remotePath = f"{folder}/{filename}" if folder else filename
+    url = f"http://{host}:{port}/api/gcode-files/file/save"
+    data = json.dumps({"path": remotePath, "content": file_content}).encode('utf-8')
+    req = urllib.request.Request(url, data=data, method='POST')
+    req.add_header('Content-Type', 'application/json')
 
-    url = f"http://{host}:{port}/api/gcode-files"
-    req = urllib.request.Request(url, data=body, method='POST')
-    req.add_header('Content-Type', f'multipart/form-data; boundary={boundary}')
+    try:
+        response = urllib.request.urlopen(req, timeout=30)
+        result = json.loads(response.read().decode('utf-8'))
+        return result
+    except urllib.error.HTTPError as e:
+        error_body = e.read().decode('utf-8') if e.fp else str(e)
+        raise Exception(f"HTTP {e.code}: {error_body}")
+    except urllib.error.URLError as e:
+        raise Exception(f"Connection failed: {e.reason}")
 
-    response = urllib.request.urlopen(req, timeout=30)
-    result = json.loads(response.read().decode('utf-8'))
-    return result.get('id')
 
-
-def load_file_in_ncsender(file_id, host="ncsender", port=8090):
-    """Load a file in ncSender by its ID."""
-    url = f"http://{host}:{port}/api/gcode-files/{file_id}/load"
-    req = urllib.request.Request(url, method='POST')
+def load_file_in_ncsender(filepath, host="ncsender", port=8090):
+    """Load a file in ncSender by its path."""
+    url = f"http://{host}:{port}/api/gcode-files/load"
+    data = json.dumps({"path": filepath}).encode('utf-8')
+    req = urllib.request.Request(url, data=data, method='POST')
     req.add_header('Content-Type', 'application/json')
     urllib.request.urlopen(req, timeout=30)
 
@@ -576,11 +496,12 @@ def PerformPostProcess(docSettings, setups):
         cntFiles = 0
         cntSkipped = 0
         lstSkipped = ""
+        remoteFolder = docSettings.get("outputFolder", "").strip()
         product = doc.products.itemByProductType(constCAMProductId)
 
         if product != None:
             cam = adsk.cam.CAM.cast(product)
-            if len(setups) == 0 or not docSettings["onlySelected"]:
+            if len(setups) == 0:
                 setups = list()
                 for setup in cam.setups:
                     setups.append(setup)
@@ -591,19 +512,19 @@ def PerformPostProcess(docSettings, setups):
             progress.progressValue = 0
 
             if len(setups) != 0 and cam.allOperations.count != 0:
-                # Use specified folder or temp folder
-                specifiedFolder = docSettings.get("outputFolder", "").strip()
-                useOutputFolder = len(specifiedFolder) > 0
-                if useOutputFolder:
-                    # Convert relative paths to absolute (relative to user's home)
-                    if not os.path.isabs(specifiedFolder):
-                        specifiedFolder = os.path.join(os.path.expanduser("~"), specifiedFolder)
-                    outputFolder = specifiedFolder
-                    pathlib.Path(outputFolder).mkdir(parents=True, exist_ok=True)
-                else:
-                    outputFolder = tempfile.mkdtemp(prefix="ncsender_")
+                # Use temp folder for local post processing
+                outputFolder = tempfile.mkdtemp(prefix="ncsender_")
 
-                firstFileId = None  # Track first uploaded file to load it
+                # Create remote folder on ncSender if specified
+                if remoteFolder:
+                    # Create folder on ncSender server
+                    progress.message = "Creating folder: " + remoteFolder
+                    try:
+                        create_folder_on_ncsender(remoteFolder, docSettings["host"], docSettings["port"])
+                    except Exception as e:
+                        lstSkipped += "\nFolder creation failed: " + str(e)
+
+                filesToUpload = []  # Collect (filepath, fname, remotePath) for batch upload
 
                 genStat = cam.generateAllToolpaths(True)
                 if not genStat.isGenerationCompleted:
@@ -615,8 +536,9 @@ def PerformPostProcess(docSettings, setups):
                         progress.progressValue = genStat.numberOfCompleted
                         time.sleep(.1)
 
-                progressMsg = "{} files uploaded to ncSender"
-                progress.show("Post Processing...", "", 0, len(setups))
+                # Single progress dialog: post-process all, then upload all
+                totalSteps = len(setups) * 2  # post-process + upload
+                progress.show("Post Processing & Uploading...", "", 0, totalSteps)
                 progress.progressValue = 1
                 progress.progressValue = 0
 
@@ -644,56 +566,74 @@ def PerformPostProcess(docSettings, setups):
                             if setup not in setups:
                                 continue
 
+                            # Create local subfolder for post processor
+                            pathlib.Path(setupFolder).mkdir(parents=True, exist_ok=True)
+
                         fname = nameList[i].strip()
-                        if docSettings["sequence"] or docSettings["numericName"]:
+                        if docSettings["sequence"]:
                             seq = seqDict[setupFolder]
                             seqStr = str(seq)
                             if docSettings["twoDigits"] and seq < 10:
                                 seqStr = "0" + seqStr
-                            if docSettings["numericName"]:
-                                fname = seqStr
-                            else:
-                                fname = seqStr + ' ' + fname
+                            fname = seqStr + ' ' + fname
 
                         status = PostProcessSetup(fname, setup, setupFolder, docSettings)
                         if status == None:
-                            # Upload to ncSender
-                            filepath = setupFolder + "/" + fname + docSettings["fileExt"]
-                            try:
-                                fileId = upload_to_ncsender(filepath, docSettings["host"], docSettings["port"])
-                                if firstFileId is None:
-                                    firstFileId = fileId
-                                cntFiles += 1
-                            except Exception as e:
-                                cntSkipped += 1
-                                lstSkipped += "\nUpload failed for " + fname + ": " + str(e)
+                            fileExt = ".nc"  # Static value
+                            filepath = setupFolder + "/" + fname + fileExt
+                            uploadFilename = fname + fileExt
+                            if remoteFolder:
+                                remotePath = remoteFolder + "/" + uploadFilename
+                            else:
+                                remotePath = uploadFilename
+                            filesToUpload.append((filepath, fname, remotePath))
+                            cntFiles += 1
                         else:
                             cntSkipped += 1
                             lstSkipped += "\nFailed on setup " + setup.name + ": " + status
 
                     cntSetups += 1
-                    progress.message = progressMsg.format(cntFiles)
+                    progress.message = "Post processing setup {} of {}".format(cntSetups, len(setups))
                     progress.progressValue = cntSetups
+
+                # Upload all files in the same dialog
+                firstFilename = None
+                cntUploaded = 0
+                for filepath, fname, remotePath in filesToUpload:
+                    if progress.wasCancelled:
+                        break
+                    try:
+                        upload_to_ncsender(filepath, docSettings["host"], docSettings["port"], remoteFolder)
+                        if firstFilename is None:
+                            firstFilename = remotePath
+                        cntUploaded += 1
+                    except Exception as e:
+                        cntSkipped += 1
+                        cntFiles -= 1
+                        lstSkipped += "\nUpload failed for " + fname + ": " + str(e)
+                    progress.message = "Uploading {} of {} files".format(cntUploaded, len(filesToUpload))
+                    progress.progressValue = len(setups) + cntUploaded
 
             progress.hide()
 
-            # Load first file in ncSender
-            if firstFileId is not None:
+            # Auto-load the first file in ncSender
+            if firstFilename is not None:
                 try:
-                    load_file_in_ncsender(firstFileId, docSettings["host"], docSettings["port"])
-                except:
-                    pass  # Ignore load errors
-
-            # Clean up temp folder (only if not using specified output folder)
-            if not useOutputFolder:
-                try:
-                    shutil.rmtree(outputFolder, True)
+                    load_file_in_ncsender(firstFilename, docSettings["host"], docSettings["port"])
                 except:
                     pass
 
+            # Clean up temp folder
+            try:
+                shutil.rmtree(outputFolder, True)
+            except:
+                pass
+
+        # Only show a dialog if there were issues or nothing was posted
         if cntSkipped != 0 or len(lstSkipped) > 0:
-            ui.messageBox("{} files uploaded to {}:{}.\nIssues:{}".format(
-                cntFiles, docSettings["host"], docSettings["port"], lstSkipped),
+            folderInfo = " to folder '{}'".format(remoteFolder) if remoteFolder else ""
+            ui.messageBox("{} files uploaded to {}:{}{}\nIssues:{}".format(
+                cntFiles, docSettings["host"], docSettings["port"], folderInfo, lstSkipped),
                 constCmdName,
                 adsk.core.MessageBoxButtonTypes.OKButtonType,
                 adsk.core.MessageBoxIconTypes.WarningIconType)
@@ -703,11 +643,6 @@ def PerformPostProcess(docSettings, setups):
                 constCmdName,
                 adsk.core.MessageBoxButtonTypes.OKButtonType,
                 adsk.core.MessageBoxIconTypes.WarningIconType)
-
-        else:
-            ui.messageBox("{} files uploaded to {}:{}".format(
-                cntFiles, docSettings["host"], docSettings["port"]),
-                constCmdName)
 
     except:
         if progress:
@@ -729,30 +664,18 @@ def PostProcessSetup(fname, setup, setupFolder, docSettings):
         product = doc.products.itemByProductType(constCAMProductId)
         cam = adsk.cam.CAM.cast(product)
 
-        opName = fname
-        opFolder = setupFolder
-        if docSettings["splitSetup"]:
-            opName = constOpTmpFile
-            opFolder = tempfile.gettempdir()
+        # Always use individual operations (splitSetup = True)
+        opName = constOpTmpFile
+        opFolder = tempfile.gettempdir()
         postInput = adsk.cam.PostProcessInput.create(opName,
                                                     docSettings["post"],
                                                     opFolder,
-                                                    docSettings["units"])
+                                                    adsk.cam.PostOutputUnitOptions.DocumentUnitsOutput)
         postInput.isOpenInEditor = False
-
-        if not docSettings["splitSetup"]:
-            try:
-                if not cam.postProcess(setup, postInput):
-                    return "Fusion 360 reported an error."
-                time.sleep(constPostLoopDelay)
-                return None
-            except Exception as exc:
-                retVal += ": " + str(exc)
-                return retVal
 
         # Split setup into individual operations
         path = setupFolder + "/" + fname
-        fileExt = docSettings["fileExt"]
+        fileExt = ".nc"  # Static value
         opPath = opFolder + "/" + opName + fileExt
         pathlib.Path(setupFolder).mkdir(parents=True, exist_ok=True)
         fileHead = open(path + fileExt, "w")
@@ -768,7 +691,7 @@ def PostProcessSetup(fname, setup, setupFolder, docSettings):
         fBlankOk = False
         lineNum = 10
         regToolComment = re.compile(r"\(T[0-9]+\s")
-        fFastZenabled = docSettings["fastZ"]
+        fFastZenabled = True  # Static: Restore rapid moves
         regBody = re.compile(r""
             "(?P<N>N[0-9]+ *)?"
             "(?P<line>"
@@ -777,7 +700,7 @@ def PostProcessSetup(fname, setup, setupFolder, docSettings):
             "(T(?P<T>[0-9]+))?"
             ".+)",
             re.IGNORECASE | re.DOTALL)
-        toolChange = docSettings["toolChange"]
+        toolChange = "M6"  # Static: G-code for tool change
         fToolChangeNum = False
         if len(toolChange) != 0:
             toolChange = toolChange.replace(":", "\n")
@@ -786,7 +709,7 @@ def PostProcessSetup(fname, setup, setupFolder, docSettings):
                 fToolChangeNum = True
                 toolChange = match["line"]
                 toolChange = toolChange.splitlines(True)
-        endCodes = docSettings["endCodes"]
+        endCodes = "M5 M9 M30 G28 G30"  # Static: G-codes that mark ending sequence
         endGcodes = re.findall("G([0-9]+)", endCodes)
         endGcodeSet = set()
         for code in endGcodes:
@@ -834,8 +757,8 @@ def PostProcessSetup(fname, setup, setupFolder, docSettings):
                 opList.add(op)
                 i += 1
 
-            retries = docSettings["postRetries"]
-            delay = docSettings["initialDelay"]
+            retries = 3  # Static value
+            delay = 0.2  # Static value
             while True:
                 try:
                     if not cam.postProcess(opList, postInput):
@@ -894,11 +817,7 @@ def PostProcessSetup(fname, setup, setupFolder, docSettings):
                     pos = line.upper().find(opName.upper())
                     if pos != -1:
                         pos += len(opName)
-                        if docSettings["numericName"]:
-                            fill = "0" * (pos - len(fname) - 1)
-                        else:
-                            fill = ""
-                        line = line[0] + fill + fname + line[pos:]
+                        line = line[0] + fname + line[pos:]
                     fileHead.write(line)
                 line = fileOp.readline()
 
