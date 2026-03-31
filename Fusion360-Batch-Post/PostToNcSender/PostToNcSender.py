@@ -24,6 +24,7 @@ defaultSettings = {
     "numericName" : False,
     "endCodes" : "M5 M9 M30",
     "onlySelected" : False,
+    "onlySelectedOps" : False,
     # Groups are expanded or not
     "groupConnection" : True,
     "groupPersonal" : True,
@@ -232,13 +233,17 @@ class CommandEventHandler(adsk.core.CommandCreatedEventHandler):
             app = adsk.core.Application.get()
             docSettings  = settingsMgr.GetSettings(app.activeDocument.attributes)
 
-            # See if we're doing only selected setups
+            # See if we're doing only selected setups or operations
             selectedSetups = list()
+            selectedOps = list()
             product = app.activeDocument.products.itemByProductType(constCAMProductId)
             if product != None:
                 for setup in product.setups:
                     if setup.isSelected:
                         selectedSetups.append(setup)
+                    for op in setup.allOperations:
+                        if op.isSelected:
+                            selectedOps.append(op)
 
             # Add inputs that will appear in a dialog
             inputs = cmd.commandInputs
@@ -270,6 +275,20 @@ class CommandEventHandler(adsk.core.CommandCreatedEventHandler):
                 "Selecting individual operations within a setup has no effect."
             )
             input.isEnabled = len(selectedSetups) != 0
+
+            # check box to use only selected operations
+            input = inputs.addBoolValueInput("onlySelectedOps",
+                                             "Only selected operations",
+                                             True,
+                                             "",
+                                             len(selectedOps) != 0)
+            input.tooltip = "Only Process Selected Operations"
+            input.tooltipDescription = (
+                "Only operations selected in the browser will be processed. "
+                "Selected operations within the same setup are combined into one file. "
+                "Setups with no selected operations are skipped."
+            )
+            input.isEnabled = len(selectedOps) != 0
 
             # check box to prepend sequence numbers
             input = inputs.addBoolValueInput("sequence",
@@ -361,7 +380,7 @@ class CommandInputChangedHandler(adsk.core.InputChangedEventHandler):
                     self.docSettings["post"] = dialog.filename
                     inputs.itemById("post").value = dialog.filename
 
-            elif input.id in self.docSettings or input.id == "outputFolder":
+            elif input.id in self.docSettings or input.id in ("outputFolder", "onlySelectedOps"):
                 if input.objectType == adsk.core.GroupCommandInput.classType():
                     self.docSettings[input.id] = input.isExpanded
                 else:
@@ -496,6 +515,8 @@ def PerformPostProcess(docSettings, setups):
         cntFiles = 0
         cntSkipped = 0
         lstSkipped = ""
+        firstFilename = None
+        outputFolder = None
         remoteFolder = docSettings.get("outputFolder", "").strip()
         product = doc.products.itemByProductType(constCAMProductId)
 
@@ -505,6 +526,13 @@ def PerformPostProcess(docSettings, setups):
                 setups = list()
                 for setup in cam.setups:
                     setups.append(setup)
+
+            # Filter by selected operations if enabled
+            # A selected setup includes all its operations
+            onlySelectedOps = docSettings.get("onlySelectedOps", False)
+            if onlySelectedOps:
+                setups = [s for s in setups if s.isSelected or any(op.isSelected for op in s.allOperations)]
+
             progress = ui.createProgressDialog()
             progress.isCancelButtonShown = True
             progress.show("Generating toolpaths...", "Beginning toolpath generation", 0, 1)
@@ -577,7 +605,7 @@ def PerformPostProcess(docSettings, setups):
                                 seqStr = "0" + seqStr
                             fname = seqStr + ' ' + fname
 
-                        status = PostProcessSetup(fname, setup, setupFolder, docSettings)
+                        status = PostProcessSetup(fname, setup, setupFolder, docSettings, onlySelectedOps=onlySelectedOps)
                         if status == None:
                             fileExt = ".nc"  # Static value
                             filepath = setupFolder + "/" + fname + fileExt
@@ -624,10 +652,11 @@ def PerformPostProcess(docSettings, setups):
                     pass
 
             # Clean up temp folder
-            try:
-                shutil.rmtree(outputFolder, True)
-            except:
-                pass
+            if outputFolder:
+                try:
+                    shutil.rmtree(outputFolder, True)
+                except:
+                    pass
 
         # Only show a dialog if there were issues or nothing was posted
         if cntSkipped != 0 or len(lstSkipped) > 0:
@@ -650,7 +679,7 @@ def PerformPostProcess(docSettings, setups):
         if ui:
             ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
 
-def PostProcessSetup(fname, setup, setupFolder, docSettings):
+def PostProcessSetup(fname, setup, setupFolder, docSettings, onlySelectedOps=False):
     ui = None
     fileHead = None
     fileBody = None
@@ -729,12 +758,17 @@ def PostProcessSetup(fname, setup, setupFolder, docSettings):
                 re.IGNORECASE)
             regGcodes = re.compile(r"G([0-9]+(?:\.[0-9]*)?)")
 
+        tailGcode = ""
+        # If the setup itself is selected, process all its operations
+        filterOps = onlySelectedOps and not setup.isSelected
         i = 0
         ops = setup.allOperations
         while i < ops.count:
             op = ops[i]
             i += 1
             if op.isSuppressed:
+                continue
+            if filterOps and not op.isSelected:
                 continue
 
             opHasTool = None
@@ -746,6 +780,9 @@ def PostProcessSetup(fname, setup, setupFolder, docSettings):
             while i < ops.count:
                 op = ops[i]
                 if op.isSuppressed:
+                    i += 1
+                    continue
+                if filterOps and not op.isSelected:
                     i += 1
                     continue
                 if op.hasToolpath:
