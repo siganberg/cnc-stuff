@@ -1,0 +1,15 @@
+; Limits
+20=1 ; Soft Limit ON
+21=0 ; Hard Limit OFF
+40=1 ; Jog Limit ON 
+
+; Travel
+130=1222.000; X-Travel 
+131=817.000; Y-Travel 
+132=162.000; Z-Travel 
+
+; Acceleration
+120=700.000
+121=700.000
+122=700.000
+
