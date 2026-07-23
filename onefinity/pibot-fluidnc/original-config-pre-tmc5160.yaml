@@ -1,0 +1,211 @@
+# ============================================================================
+# ORIGINAL config (BEFORE the TMC5160 conversion) - for reference/rollback.
+# Reconstructed from `$Config/Dump` taken 2026-07-22 before any changes.
+# The authoritative original file also still exists on the board's flash
+# as `config.yaml` (revert with: $Config/Filename=config.yaml + reboot).
+# Driver types here are standard_stepper/stepstick (the old dumb drivers).
+# ============================================================================
+board: PiBotV49P
+name: XYZ_CNC_Router
+stepping:
+  engine: I2S_STREAM
+  idle_ms: 254
+  pulse_us: 4
+  dir_delay_us: 1
+  disable_delay_us: 0
+  segments: 12
+
+i2so:
+  bck_pin: gpio.22
+  data_pin: gpio.21
+  ws_pin: gpio.17
+  min_pulse_us: 2
+  oe_pin: NO_PIN
+
+spi:
+  miso_pin: gpio.19
+  mosi_pin: gpio.23
+  sck_pin: gpio.18
+
+sdcard:
+  cs_pin: gpio.5
+  card_detect_pin: NO_PIN
+  frequency_hz: 8000000
+
+kinematics:
+  Cartesian:
+
+axes:
+  shared_stepper_disable_pin: NO_PIN
+  shared_stepper_reset_pin: NO_PIN
+  homing_runs: 2
+  X:
+    steps_per_mm: 400.000000
+    max_rate_mm_per_min: 15000.000000
+    acceleration_mm_per_sec2: 2000.000000
+    max_travel_mm: 440.000000
+    soft_limits: true
+    idle_disable: true
+    homing:
+      cycle: 2
+      allow_single_axis: true
+      positive_direction: false
+      mpos_mm: 0.000000
+      feed_mm_per_min: 100.000000
+      seek_mm_per_min: 200.000000
+      settle_ms: 500
+      seek_scaler: 1.100000
+      feed_scaler: 1.100000
+    motor0:
+      limit_neg_pin: 'gpio.35:low'
+      limit_pos_pin: NO_PIN
+      limit_all_pin: NO_PIN
+      hard_limits: false
+      pulloff_mm: 1.000000
+      standard_stepper:
+        step_pin: I2SO.2
+        direction_pin: I2SO.1
+        disable_pin: 'I2SO.0:low'
+
+  Y:
+    steps_per_mm: 400.000000
+    max_rate_mm_per_min: 15000.000000
+    acceleration_mm_per_sec2: 2000.000000
+    max_travel_mm: 440.000000
+    soft_limits: true
+    idle_disable: true
+    homing:
+      cycle: 2
+      allow_single_axis: true
+      positive_direction: true
+      mpos_mm: 0.000000
+      feed_mm_per_min: 100.000000
+      seek_mm_per_min: 200.000000
+      settle_ms: 500
+      seek_scaler: 1.100000
+      feed_scaler: 1.100000
+    motor0:
+      limit_neg_pin: 'gpio.34:low'
+      limit_pos_pin: NO_PIN
+      limit_all_pin: NO_PIN
+      hard_limits: false
+      pulloff_mm: 1.000000
+      stepstick:
+        step_pin: I2SO.5
+        direction_pin: I2SO.4
+        disable_pin: I2SO.7
+        ms1_pin: NO_PIN
+        ms2_pin: NO_PIN
+        ms3_pin: 'I2SO.6:low'
+        reset_pin: NO_PIN
+
+  Z:
+    steps_per_mm: 400.000000
+    max_rate_mm_per_min: 5000.000000
+    acceleration_mm_per_sec2: 1000.000000
+    max_travel_mm: 100.000000
+    soft_limits: true
+    idle_disable: true
+    homing:
+      cycle: 1
+      allow_single_axis: true
+      positive_direction: true
+      mpos_mm: 0.000000
+      feed_mm_per_min: 100.000000
+      seek_mm_per_min: 800.000000
+      settle_ms: 500
+      seek_scaler: 1.100000
+      feed_scaler: 1.100000
+    motor0:
+      limit_neg_pin: 'gpio.39:low'
+      limit_pos_pin: NO_PIN
+      limit_all_pin: NO_PIN
+      hard_limits: false
+      pulloff_mm: 1.000000
+      stepstick:
+        step_pin: I2SO.10
+        direction_pin: I2SO.9
+        disable_pin: I2SO.8
+        ms1_pin: NO_PIN
+        ms2_pin: NO_PIN
+        ms3_pin: 'I2SO.11:low'
+        reset_pin: NO_PIN
+
+  A:
+    steps_per_mm: 400.000000
+    max_rate_mm_per_min: 5000.000000
+    acceleration_mm_per_sec2: 1000.000000
+    max_travel_mm: 360.000000
+    soft_limits: false
+    idle_disable: true
+    homing:
+      cycle: -1
+      allow_single_axis: true
+      positive_direction: false
+      mpos_mm: 0.000000
+      feed_mm_per_min: 100.000000
+      seek_mm_per_min: 200.000000
+      settle_ms: 500
+      seek_scaler: 1.100000
+      feed_scaler: 1.100000
+    motor0:
+      limit_neg_pin: 'gpio.36:low'
+      limit_pos_pin: NO_PIN
+      limit_all_pin: NO_PIN
+      hard_limits: false
+      pulloff_mm: 3.000000
+      standard_stepper:
+        step_pin: I2SO.13
+        direction_pin: I2SO.12
+        disable_pin: I2SO.15
+
+control:
+  safety_door_pin: NO_PIN
+  reset_pin: NO_PIN
+  feed_hold_pin: NO_PIN
+  cycle_start_pin: NO_PIN
+  macro0_pin: NO_PIN
+  macro1_pin: NO_PIN
+  macro2_pin: NO_PIN
+  macro3_pin: NO_PIN
+  fault_pin: NO_PIN
+  estop_pin: NO_PIN
+  homing_button_pin: NO_PIN
+
+coolant:
+  flood_pin: NO_PIN
+  mist_pin: NO_PIN
+  delay_ms: 0
+
+probe:
+  pin: 'gpio.2:low:pu'
+  toolsetter_pin: 'gpio.33:low:pu'
+  check_mode_start: true
+  hard_stop: false
+  probe_hard_limit: false
+
+start:
+  must_home: false
+  deactivate_parking: false
+  check_limits: true
+
+PWM:
+  pwm_hz: 5000
+  direction_pin: NO_PIN
+  output_pin: gpio.4
+  enable_pin: NO_PIN
+  spinup_ms: 0
+  spindown_ms: 0
+  tool_num: 0
+  speed_map: 0=0.00% 10000=100.00%
+  off_on_alarm: false
+  s0_with_disable: true
+  disable_with_s0: false
+
+arc_tolerance_mm: 0.002000
+junction_deviation_mm: 0.010000
+verbose_errors: true
+report_inches: false
+enable_parking_override_control: false
+use_line_numbers: true
+planner_blocks: 16

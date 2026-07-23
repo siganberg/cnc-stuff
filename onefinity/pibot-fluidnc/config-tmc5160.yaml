@@ -1,0 +1,249 @@
+board: PiBotV49P
+name: XYZ_CNC_Router
+meta:
+# IMPORTANT: this firmware's YAML parser does NOT strip trailing '#' comments.
+# Keep every comment on its own line. Never put a comment after a value.
+stepping:
+  engine: I2S_STATIC
+  idle_ms: 254
+  pulse_us: 4
+  dir_delay_us: 1
+  disable_delay_us: 0
+  segments: 12
+
+i2so:
+  bck_pin: gpio.22
+  data_pin: gpio.21
+  ws_pin: gpio.17
+  min_pulse_us: 2
+  oe_pin: NO_PIN
+
+spi:
+  miso_pin: gpio.19
+  mosi_pin: gpio.23
+  sck_pin: gpio.18
+
+sdcard:
+  cs_pin: gpio.5
+  card_detect_pin: NO_PIN
+  frequency_hz: 8000000
+
+kinematics:
+  Cartesian:
+
+# ================= SENSORLESS (StallGuard) HOMING =================
+# Wire each driver DIAG pin -> the matching limit input below (active HIGH).
+#   stallguard: LOWER = more sensitive. Driver-specific value: TUNE it.
+#   homing_mode: StallGuard ; stallguard_debug: true only while tuning.
+# Homing feed AND seek must be the SAME medium speed.
+# ==================================================================
+
+axes:
+  shared_stepper_disable_pin: NO_PIN
+  shared_stepper_reset_pin: NO_PIN
+  homing_runs: 1
+  X:
+    steps_per_mm: 400.000000
+    max_rate_mm_per_min: 6000.000000
+    acceleration_mm_per_sec2: 500.000000
+    max_travel_mm: 440.000000
+    soft_limits: true
+    idle_disable: false
+    homing:
+      cycle: 2
+      allow_single_axis: true
+      positive_direction: false
+      mpos_mm: 0.000000
+      feed_mm_per_min: 300.000000
+      seek_mm_per_min: 300.000000
+      settle_ms: 500
+      seek_scaler: 1.100000
+      feed_scaler: 1.100000
+    motor0:
+      limit_neg_pin: 'gpio.35:low'
+      limit_pos_pin: NO_PIN
+      limit_all_pin: NO_PIN
+      hard_limits: false
+      pulloff_mm: 1.000000
+      tmc_5160:
+        r_sense_ohms: 0.075
+        run_amps: 1.8
+        hold_amps: 0.9
+        microsteps: 16
+        stallguard: 5
+        stallguard_debug: false
+        toff_disable: 0
+        toff_stealthchop: 5
+        toff_coolstep: 3
+        run_mode: CoolStep
+        homing_mode: StallGuard
+        use_enable: false
+        cs_pin: i2so.3
+        step_pin: I2SO.2
+        direction_pin: 'I2SO.1:low'
+        disable_pin: I2SO.0
+        spi_index: -1
+
+  Y:
+    steps_per_mm: 400.000000
+    max_rate_mm_per_min: 6000.000000
+    acceleration_mm_per_sec2: 500.000000
+    max_travel_mm: 440.000000
+    soft_limits: true
+    idle_disable: false
+    homing:
+      cycle: 2
+      allow_single_axis: true
+      positive_direction: true
+      mpos_mm: 0.000000
+      feed_mm_per_min: 300.000000
+      seek_mm_per_min: 300.000000
+      settle_ms: 500
+      seek_scaler: 1.100000
+      feed_scaler: 1.100000
+    # Y motor0 = Y left (Motor 2 slot)
+    motor0:
+      limit_neg_pin: NO_PIN
+      limit_pos_pin: 'gpio.34:low'
+      limit_all_pin: NO_PIN
+      hard_limits: false
+      pulloff_mm: 1.000000
+      tmc_5160:
+        r_sense_ohms: 0.075
+        run_amps: 1.8
+        hold_amps: 0.9
+        microsteps: 16
+        stallguard: 5
+        stallguard_debug: false
+        toff_disable: 0
+        toff_stealthchop: 5
+        toff_coolstep: 3
+        run_mode: CoolStep
+        homing_mode: StallGuard
+        use_enable: false
+        cs_pin: i2so.6
+        step_pin: I2SO.5
+        direction_pin: 'I2SO.4:low'
+        disable_pin: I2SO.7
+        spi_index: -1
+    # Y motor1 = Y2 right (Motor 4 slot). Its own DIAG on gpio.36 = sensorless squaring.
+    # If the gantry RACKS/BINDS when jogging Y, change direction_pin to  'I2SO.12:low'
+    motor1:
+      limit_neg_pin: NO_PIN
+      limit_pos_pin: 'gpio.36:low'
+      limit_all_pin: NO_PIN
+      hard_limits: false
+      pulloff_mm: 1.000000
+      tmc_5160:
+        r_sense_ohms: 0.075
+        run_amps: 1.8
+        hold_amps: 0.9
+        microsteps: 16
+        stallguard: 5
+        stallguard_debug: false
+        toff_disable: 0
+        toff_stealthchop: 5
+        toff_coolstep: 3
+        run_mode: CoolStep
+        homing_mode: StallGuard
+        use_enable: false
+        cs_pin: i2so.14
+        step_pin: I2SO.13
+        direction_pin: 'I2SO.12:low'
+        disable_pin: I2SO.15
+        spi_index: -1
+
+  Z:
+    steps_per_mm: 400.000000
+    max_rate_mm_per_min: 3000.000000
+    acceleration_mm_per_sec2: 300.000000
+    max_travel_mm: 100.000000
+    soft_limits: true
+    idle_disable: false
+    homing:
+      cycle: 1
+      allow_single_axis: true
+      positive_direction: true
+      mpos_mm: 0.000000
+      feed_mm_per_min: 300.000000
+      seek_mm_per_min: 300.000000
+      settle_ms: 500
+      seek_scaler: 1.100000
+      feed_scaler: 1.100000
+    motor0:
+      limit_neg_pin: NO_PIN
+      limit_pos_pin: 'gpio.39:low'
+      limit_all_pin: NO_PIN
+      hard_limits: false
+      pulloff_mm: 1.000000
+      tmc_5160:
+        r_sense_ohms: 0.075
+        run_amps: 1.8
+        hold_amps: 0.9
+        microsteps: 16
+        stallguard: 5
+        stallguard_debug: false
+        toff_disable: 0
+        toff_stealthchop: 5
+        toff_coolstep: 3
+        run_mode: CoolStep
+        homing_mode: StallGuard
+        use_enable: false
+        cs_pin: i2so.11
+        step_pin: I2SO.10
+        direction_pin: I2SO.9
+        disable_pin: I2SO.8
+        spi_index: -1
+
+# The old 'A' axis is gone; its motor (Motor 4 slot) is now Y motor1 above.
+
+control:
+  safety_door_pin: NO_PIN
+  reset_pin: NO_PIN
+  feed_hold_pin: NO_PIN
+  cycle_start_pin: NO_PIN
+  macro0_pin: NO_PIN
+  macro1_pin: NO_PIN
+  macro2_pin: NO_PIN
+  macro3_pin: NO_PIN
+  fault_pin: NO_PIN
+  estop_pin: NO_PIN
+  homing_button_pin: NO_PIN
+
+coolant:
+  flood_pin: NO_PIN
+  mist_pin: NO_PIN
+  delay_ms: 0
+
+probe:
+  pin: 'gpio.2:low:pu'
+  toolsetter_pin: 'gpio.33:low:pu'
+  check_mode_start: true
+  hard_stop: false
+  probe_hard_limit: false
+
+start:
+  must_home: false
+  deactivate_parking: false
+  check_limits: true
+
+PWM:
+  pwm_hz: 5000
+  direction_pin: NO_PIN
+  output_pin: gpio.4
+  enable_pin: NO_PIN
+  spinup_ms: 0
+  spindown_ms: 0
+  tool_num: 0
+  speed_map: 0=0.00% 10000=100.00%
+  off_on_alarm: false
+  s0_with_disable: true
+  disable_with_s0: false
+
+arc_tolerance_mm: 0.002000
+junction_deviation_mm: 0.010000
+verbose_errors: true
+report_inches: false
+enable_parking_override_control: false
+use_line_numbers: true
+planner_blocks: 16
