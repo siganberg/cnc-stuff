@@ -53,9 +53,9 @@ axes:
       cycle: 2
       allow_single_axis: true
       positive_direction: false
-      mpos_mm: 3.000000
-      feed_mm_per_min: 300.000000
-      seek_mm_per_min: 300.000000
+      mpos_mm: 0.000000
+      feed_mm_per_min: 200.000000
+      seek_mm_per_min: 400.000000
       settle_ms: 500
       seek_scaler: 1.100000
       feed_scaler: 1.100000
@@ -95,9 +95,9 @@ axes:
       cycle: 2
       allow_single_axis: true
       positive_direction: true
-      mpos_mm: -3.000000
-      feed_mm_per_min: 300.000000
-      seek_mm_per_min: 300.000000
+      mpos_mm: 0.000000
+      feed_mm_per_min: 200.000000
+      seek_mm_per_min: 400.000000
       settle_ms: 500
       seek_scaler: 1.100000
       feed_scaler: 1.100000
@@ -164,9 +164,9 @@ axes:
       cycle: 1
       allow_single_axis: true
       positive_direction: true
-      mpos_mm: -3.000000
-      feed_mm_per_min: 300.000000
-      seek_mm_per_min: 300.000000
+      mpos_mm: 0.000000
+      feed_mm_per_min: 200.000000
+      seek_mm_per_min: 400.000000
       settle_ms: 500
       seek_scaler: 1.100000
       feed_scaler: 1.100000
