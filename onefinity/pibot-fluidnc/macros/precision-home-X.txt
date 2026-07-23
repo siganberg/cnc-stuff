@@ -1,0 +1,14 @@
+# "Precision Home X" — ncSender macro (user-tuned 2026-07-23, zero failures)
+# Two-stage sensorless homing: fast hair-trigger seek, then slow precise confirm.
+# NOTE: G53 line requires the machine to have homed at least once this session.
+# Extend to Y/Z with the same pattern once their DIAG pull-up resistors are in.
+
+G53 G90 G0 X50
+$/axes/homing_runs=1
+$/axes/x/motor0/pulloff_mm=3
+$/axes/x/homing/seek_mm_per_min=1000
+$/axes/x/motor0/tmc_5160/stallguard=0
+$HX
+$/axes/x/homing/seek_mm_per_min=200
+$/axes/x/motor0/tmc_5160/stallguard=5
+$HX
