@@ -227,18 +227,21 @@ start:
   deactivate_parking: false
   check_limits: true
 
-PWM:
-  pwm_hz: 5000
-  direction_pin: NO_PIN
-  output_pin: gpio.4
-  enable_pin: NO_PIN
-  spinup_ms: 0
-  spindown_ms: 0
+# H100 VFD spindle over RS-485 (PiBot onboard transceiver pins)
+# VFD is modbus address 2, 9600 8N1, 24000 RPM max (400 Hz)
+uart1:
+  txd_pin: gpio.15
+  rxd_pin: gpio.16
+  rts_pin: gpio.14
+  baud: 9600
+  mode: 8N1
+
+H100:
+  uart_num: 1
+  modbus_id: 2
   tool_num: 0
-  speed_map: 0=0.00% 10000=100.00%
-  off_on_alarm: false
-  s0_with_disable: true
-  disable_with_s0: false
+  speed_map: 0=0.000% 0=25.000% 6000=25.000% 24000=100.000%
+  off_on_alarm: true
 
 arc_tolerance_mm: 0.002000
 junction_deviation_mm: 0.010000
