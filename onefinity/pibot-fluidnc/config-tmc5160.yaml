@@ -55,7 +55,7 @@ axes:
       positive_direction: false
       mpos_mm: 0.000000
       feed_mm_per_min: 200.000000
-      seek_mm_per_min: 700.000000
+      seek_mm_per_min: 1000.000000
       settle_ms: 500
       seek_scaler: 1.100000
       feed_scaler: 1.100000
@@ -71,6 +71,7 @@ axes:
         hold_amps: 0.9
         microsteps: 16
         stallguard: 5
+        stallguard_seek: 0
         stallguard_debug: false
         toff_disable: 0
         toff_stealthchop: 5
