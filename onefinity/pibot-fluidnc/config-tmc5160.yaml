@@ -154,7 +154,7 @@ axes:
         spi_index: -1
 
   Z:
-    steps_per_mm: 200.000000
+    steps_per_mm: 800.000000
     max_rate_mm_per_min: 3000.000000
     acceleration_mm_per_sec2: 200.000000
     max_travel_mm: 100.000000
