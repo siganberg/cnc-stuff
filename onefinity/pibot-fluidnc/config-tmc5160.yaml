@@ -43,7 +43,7 @@ axes:
   shared_stepper_reset_pin: NO_PIN
   homing_runs: 1
   X:
-    steps_per_mm: 400.000000
+    steps_per_mm: 320.000000
     max_rate_mm_per_min: 6000.000000
     acceleration_mm_per_sec2: 300.000000
     max_travel_mm: 440.000000
@@ -85,7 +85,7 @@ axes:
         spi_index: -1
 
   Y:
-    steps_per_mm: 400.000000
+    steps_per_mm: 320.000000
     max_rate_mm_per_min: 6000.000000
     acceleration_mm_per_sec2: 300.000000
     max_travel_mm: 440.000000
@@ -154,7 +154,7 @@ axes:
         spi_index: -1
 
   Z:
-    steps_per_mm: 400.000000
+    steps_per_mm: 200.000000
     max_rate_mm_per_min: 3000.000000
     acceleration_mm_per_sec2: 200.000000
     max_travel_mm: 100.000000
