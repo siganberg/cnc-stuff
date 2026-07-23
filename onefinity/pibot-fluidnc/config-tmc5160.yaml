@@ -58,13 +58,13 @@ axes:
       seek_mm_per_min: 1000.000000
       settle_ms: 500
       seek_scaler: 1.100000
-      feed_scaler: 1.100000
+      feed_scaler: 2.500000
     motor0:
       limit_neg_pin: 'gpio.35:low'
       limit_pos_pin: NO_PIN
       limit_all_pin: NO_PIN
       hard_limits: false
-      pulloff_mm: 5.000000
+      pulloff_mm: 3.000000
       tmc_5160:
         r_sense_ohms: 0.075
         run_amps: 1.8

@@ -1,13 +1,20 @@
-# "Precision Home X" — ncSender macro (user-tuned 2026-07-23, zero failures)
-# Two-stage sensorless homing: fast hair-trigger seek, then slow precise confirm.
-# Extend to Y/Z with the same pattern once their DIAG pull-up resistors are in.
-# (For bench-testing, prepend:  G53 G90 G0 X50  to back the axis off first.)
+# "Precision Home X" — OBSOLETE as of 2026-07-23: the custom FluidNC build
+# (branch homing-phase-stallguard) does this natively via config. Plain $HX
+# now runs: seek 1000 @ stallguard_seek 0 -> 3mm bounce -> confirm 200 @
+# stallguard 5 (feed_scaler 2.5 gives the confirm pass grind budget).
+# Kept for reference / for stock-firmware fallback.
+#
+# NOTE for the NEW firmware: with homing_runs=1 each $HX is a SEEK phase,
+# so tune stallguard_seek (not stallguard) between passes:
 
 $/axes/homing_runs=1
 $/axes/x/motor0/pulloff_mm=3
 $/axes/x/homing/seek_mm_per_min=1000
-$/axes/x/motor0/tmc_5160/stallguard=0
+$/axes/x/motor0/tmc_5160/stallguard_seek=0
 $HX
 $/axes/x/homing/seek_mm_per_min=200
-$/axes/x/motor0/tmc_5160/stallguard=5
+$/axes/x/motor0/tmc_5160/stallguard_seek=5
 $HX
+
+# STOCK v4.0.3 version (single stallguard knob):
+#   ...same lines but use $/axes/x/motor0/tmc_5160/stallguard=0 / =5
