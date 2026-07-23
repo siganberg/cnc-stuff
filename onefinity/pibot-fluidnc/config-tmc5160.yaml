@@ -228,12 +228,12 @@ start:
   check_limits: true
 
 # H100 VFD spindle over RS-485 (PiBot onboard transceiver pins)
-# VFD is modbus address 2, 9600 8N1, 24000 RPM max (400 Hz)
+# VFD is modbus address 2, 19200 8N1 (per grblHAL backup $374=3), 24000 RPM max
 uart1:
   txd_pin: gpio.15
   rxd_pin: gpio.16
   rts_pin: gpio.14
-  baud: 9600
+  baud: 19200
   mode: 8N1
 
 H100:
