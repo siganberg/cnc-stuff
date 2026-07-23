@@ -41,7 +41,7 @@ kinematics:
 axes:
   shared_stepper_disable_pin: NO_PIN
   shared_stepper_reset_pin: NO_PIN
-  homing_runs: 2
+  homing_runs: 1
   X:
     steps_per_mm: 320.000000
     max_rate_mm_per_min: 6000.000000
@@ -55,7 +55,7 @@ axes:
       positive_direction: false
       mpos_mm: 0.000000
       feed_mm_per_min: 300.000000
-      seek_mm_per_min: 500.000000
+      seek_mm_per_min: 800.000000
       settle_ms: 500
       seek_scaler: 1.100000
       feed_scaler: 1.100000
@@ -97,7 +97,7 @@ axes:
       positive_direction: true
       mpos_mm: 0.000000
       feed_mm_per_min: 300.000000
-      seek_mm_per_min: 500.000000
+      seek_mm_per_min: 800.000000
       settle_ms: 500
       seek_scaler: 1.100000
       feed_scaler: 1.100000
@@ -166,7 +166,7 @@ axes:
       positive_direction: true
       mpos_mm: 0.000000
       feed_mm_per_min: 300.000000
-      seek_mm_per_min: 500.000000
+      seek_mm_per_min: 800.000000
       settle_ms: 500
       seek_scaler: 1.100000
       feed_scaler: 1.100000
