@@ -93,7 +93,7 @@ axes:
     soft_limits: true
     idle_disable: false
     homing:
-      cycle: 2
+      cycle: 3
       allow_single_axis: true
       positive_direction: true
       mpos_mm: 0.000000
