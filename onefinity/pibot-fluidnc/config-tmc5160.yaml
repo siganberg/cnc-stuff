@@ -178,7 +178,7 @@ axes:
       limit_pos_pin: 'gpio.39:low'
       limit_all_pin: NO_PIN
       hard_limits: false
-      pulloff_mm: 5.000000
+      pulloff_mm: 3.000000
       tmc_5160:
         r_sense_ohms: 0.075
         run_amps: 1.8
