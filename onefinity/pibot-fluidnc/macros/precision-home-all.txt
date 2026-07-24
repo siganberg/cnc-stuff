@@ -1,0 +1,43 @@
+# "Precision Home All" — ncSender macro (2026-07-23)
+# Two-stage sensorless homing per axis: fast seek (stallguard_seek 0) finds the
+# wall, then a slow accurate confirm (seek 200, stallguard_seek 5), 3mm standoff.
+#
+# WHY A MACRO (not native homing_runs:2): running two SEPARATE $H cycles gives
+# StallGuard a clean re-arm between passes. FluidNC's built-in bounce re-arms
+# poorly at the internal fast->slow transition, so its slow phase mis-triggers
+# at the pulloff point and doubles the standoff (6mm instead of 3mm).
+#
+# Order: Z up first (safety), then X, then Y gantry (both motors auto-square).
+# NOTE: Y gantry grinds while squaring (known FluidNC limit-latch gap) but works.
+
+$/axes/homing_runs=1
+
+# ---- Z (homes up) ----
+$/axes/z/motor0/pulloff_mm=3
+$/axes/z/homing/seek_mm_per_min=1000
+$/axes/z/motor0/tmc_5160/stallguard_seek=0
+$HZ
+$/axes/z/homing/seek_mm_per_min=200
+$/axes/z/motor0/tmc_5160/stallguard_seek=5
+$HZ
+
+# ---- X ----
+$/axes/x/motor0/pulloff_mm=3
+$/axes/x/homing/seek_mm_per_min=1000
+$/axes/x/motor0/tmc_5160/stallguard_seek=0
+$HX
+$/axes/x/homing/seek_mm_per_min=200
+$/axes/x/motor0/tmc_5160/stallguard_seek=5
+$HX
+
+# ---- Y gantry (motor0 + motor1) ----
+$/axes/y/motor0/pulloff_mm=3
+$/axes/y/motor1/pulloff_mm=3
+$/axes/y/homing/seek_mm_per_min=1000
+$/axes/y/motor0/tmc_5160/stallguard_seek=0
+$/axes/y/motor1/tmc_5160/stallguard_seek=0
+$HY
+$/axes/y/homing/seek_mm_per_min=200
+$/axes/y/motor0/tmc_5160/stallguard_seek=5
+$/axes/y/motor1/tmc_5160/stallguard_seek=5
+$HY
