@@ -97,8 +97,8 @@ axes:
       allow_single_axis: true
       positive_direction: true
       mpos_mm: 0.000000
-      feed_mm_per_min: 200.000000
-      seek_mm_per_min: 700.000000
+      feed_mm_per_min: 150.000000
+      seek_mm_per_min: 1000.000000
       settle_ms: 500
       seek_scaler: 1.100000
       feed_scaler: 2.500000
@@ -108,7 +108,7 @@ axes:
       limit_pos_pin: 'gpio.34:low'
       limit_all_pin: NO_PIN
       hard_limits: false
-      pulloff_mm: 5.000000
+      pulloff_mm: 3.000000
       tmc_5160:
         r_sense_ohms: 0.075
         run_amps: 1.8
@@ -135,7 +135,7 @@ axes:
       limit_pos_pin: 'gpio.36:low'
       limit_all_pin: NO_PIN
       hard_limits: false
-      pulloff_mm: 5.000000
+      pulloff_mm: 3.000000
       tmc_5160:
         r_sense_ohms: 0.075
         run_amps: 1.8
