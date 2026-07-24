@@ -68,6 +68,7 @@ axes:
       tmc_5160:
         r_sense_ohms: 0.075
         run_amps: 1.8
+        homing_amps: 1.0
         hold_amps: 0.9
         microsteps: 16
         stallguard: 5
@@ -112,6 +113,7 @@ axes:
       tmc_5160:
         r_sense_ohms: 0.075
         run_amps: 1.8
+        homing_amps: 1.0
         hold_amps: 0.9
         microsteps: 16
         stallguard: 5
@@ -139,6 +141,7 @@ axes:
       tmc_5160:
         r_sense_ohms: 0.075
         run_amps: 1.8
+        homing_amps: 1.0
         hold_amps: 0.9
         microsteps: 16
         stallguard: 5
@@ -182,6 +185,7 @@ axes:
       tmc_5160:
         r_sense_ohms: 0.075
         run_amps: 1.8
+        homing_amps: 1.0
         hold_amps: 0.9
         microsteps: 16
         stallguard: 5
