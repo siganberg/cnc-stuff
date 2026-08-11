@@ -9,44 +9,48 @@ can stop a `G38` cycle over the connection it already has. It merges into the
 hardware probe inside the stepper interrupt, so the controller cannot tell a
 virtual assert from a real pin transition.
 
+The plugin is now registered in grblHAL upstream (`plugins_init.h`) and
+available in the grblHAL Web Builder.
+
 ## ⚠ Experimental — read before flashing
 
-- **No warranty.** These are personal builds, not Sienci releases. Not
-  affiliated with or supported by Sienci Labs or the grblHAL project. Do not
-  report issues with these to either.
+- **No warranty.** Personal builds, not Sienci releases. Not affiliated with or
+  supported by Sienci Labs or the grblHAL project. Do not report issues with
+  these to either.
 - **A virtual probe bypasses your physical probe wiring.** If whatever asserts
   it stalls, disconnects or drops a packet, **the probe move will not stop** and
   the tool drives on to the end of its programmed travel. Treat wireless links
   as unreliable.
+- **Virtual inputs are level-held, not one-shot.** They stay asserted until
+  released (`0xA6`/`0xA8`/`0xA9`) or a soft reset. The host owns the release —
+  a stale assert will fail the next probe's initial check with `ALARM:4`.
 - **Test clear of the bed**, at low feed, with a hand on the E-stop.
 - **These carry a specific machine's defaults** — travels 1260 × 1248 × 170,
   4 axes with Y auto-square, steps/mm 320/320/200, and a particular spindle
-  setup. Settings already stored in NVS are preserved on flash, but a settings
-  reset (`$RST=*`) will load *those* defaults, not yours. Back up your settings
-  first (`$$`).
-- Keep a known-good firmware handy. Flashing instructions and DFU recovery are
-  in the [repository root README](../../../../README.md).
+  setup. Stored settings survive a flash, but `$RST=*` would load *those*
+  defaults, not yours. Back up `$$` first.
+- Flashing instructions and DFU recovery are in the
+  [repository root README](../../../../README.md).
 
 ## Which one
 
-| File | Toolsetter | Hardware tested |
-|---|---|---|
-| `firmware_virtual-inputs_20260805.hex` | shared with probe (stock SLB behaviour) | ✅ yes |
-| `firmware_virtual-inputs_toolsetter-probe_20260805.hex` | separate probe, `TOOLSETTER_ENABLE=1` | ❌ **not tested** |
+| File | Toolsetter |
+|---|---|
+| `firmware_virtual-inputs_v0.05_20260811.hex` | shared with the probe (stock SLB behaviour) |
+| `firmware_virtual-inputs_v0.05_toolsetter-probe_20260811.hex` | separate probe, `TOOLSETTER_ENABLE=1` |
 
 **Take the first one unless you specifically want a virtual toolsetter.** It is
 strictly additive: nothing about existing probe or toolsetter behaviour changes.
 
-The second build registers the toolsetter as its own selectable probe. That
+The second registers the toolsetter as its own selectable probe. That
 **disables the SLB Probing mux**, so the physical toolsetter no longer fires on
-a bare `G38` — it needs `G38.x P1`. Any existing toolchange macro relying on the
-old behaviour will need updating. It compiles and links but has not been run on
-a machine.
+a bare `G38` — it needs `G38.x P1`. Existing toolchange macros would need
+updating.
 
 | | md5 |
 |---|---|
-| `firmware_virtual-inputs_20260805.hex` | `b54f5f9e618588df32009e9fddca0890` |
-| `firmware_virtual-inputs_toolsetter-probe_20260805.hex` | `19f6ec47dbb1edbe714bdf95b9921271` |
+| `..._v0.05_20260811.hex` | `1f297dd3cb30784b8e2afbbe96872b9a` |
+| `..._v0.05_toolsetter-probe_20260811.hex` | `9e21341ba5c6dce25189360920a4b650` |
 
 ## Commands
 
@@ -69,37 +73,49 @@ UTF-8-encoded as `0xC2 0xA5` and never arrives.
 Bench commands (not usable mid-probe):
 
 ```
-$I        → [PLUGIN:Virtual inputs v0.02]
+$I        → [PLUGIN:Virtual inputs v0.05]
 $VI       → [VINPUTS:PROBE=0,TLS=0]
+            [VINPUTCNT:PROBE_SET=0,PROBE_CLR=0,TLS_SET=0,TLS_CLR=0]
 $VI=0,1   assert probe        $VI=0,0  release
 $VI=1,1   assert toolsetter   $VI=1,0  release
+$VI=RST   zero the counters (states left alone)
 ```
 
-Virtual inputs clear automatically on probe completion and on soft reset.
+`[VINPUTCNT:...]` counts every command byte the controller actually processed,
+so you can compare it against what your host thinks it sent and measure loss on
+the serial link.
 
-## What was verified
+Virtual inputs are cleared only on **soft reset** — not on probe completion.
+That is deliberate: clearing per cycle broke seek-then-probe-away, because the
+input read as released between the two moves while the sensor was still
+mechanically pressed.
 
-On an SLB-EXT running the shared-toolsetter build, `G38.3`/`G38.5 X-10 F100`:
+## Test status
 
-| | |
-|---|---|
-| virtual toolsetter, `0xA7` | `[PRB:587.037,…:1]` stopped at 6.70 mm |
-| virtual probe, `0xA5` | `[PRB:580.331,…:1]` stopped at 6.70 mm |
-| probe-away, `0xA5` then `0xA6` | `[PRB:573.684,…:1]` stopped at 6.65 mm |
+The probe merge is verified on an SLB-EXT in the shared topology — physical
+toolsetter `G38.2` then `G38.4`, and virtual probe `0xA5` / `G38.5` / `0xA6`,
+both stopping correctly and latching a probe position.
 
-The `:1` is grblHAL's probe-success flag — the core ran a full probe cycle and
-latched a position, rather than merely halting.
+The plugin also carries a host-side regression suite (174 checks) covering both
+topologies, both probe directions and all four contact sources:
+`./test/run.sh` in the plugin repo.
+
+The **separate-probe** variant builds clean but has **not** been run on a
+machine.
 
 ## Build details
 
 | | |
 |---|---|
-| grblHAL core | build `20260803` (`b34eabe`) |
+| grblHAL core | build `20260811` (`29b7471`) |
 | Driver | [grblHAL/STM32F4xx](https://github.com/grblHAL/STM32F4xx), `BOARD_LONGBOARD32_EXT` |
 | MCU | STM32F412VG |
 | Base config | grblHAL Web Builder job for this machine |
-| Plugin | [siganberg/grblhal-virtual-inputs](https://github.com/siganberg/grblhal-virtual-inputs) |
+| Plugin | [siganberg/grblhal-virtual-inputs](https://github.com/siganberg/grblhal-virtual-inputs) v0.05 |
 
-No core or driver source was modified. The plugin attaches through the core's
-weak `my_plugin_init()` hook, and the only other change is the
-`TOOLSETTER_ENABLE=1` build flag in the second variant.
+Core `20260811` also carries Terje's fix for parking retract, which was broken
+for all non-laser machines in earlier builds — safety-door and sleep parking
+silently did nothing but de-energise.
+
+No core or driver source is modified; the plugin is enabled with
+`-D VIRTUAL_INPUTS_ENABLE=1` and registered by the core itself.
