@@ -911,7 +911,7 @@ function getCoolantCodes(coolant) {
 
 function onClose() {
 
-  writeBlock("G53 G90 G0 Z-5");
+  writeBlock("G53 G90 G0 Z" + xyzFormat.format(toPreciseUnit(-5, MM))); // -5 mm machine Z, converted to program units
   setCoolant(COOLANT_OFF);
 
   writeRetract(Z);
